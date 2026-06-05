@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle Full - FutFanatics</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f4f6fb;padding:20px}
+header{background:#192C53;color:#fff;padding:15px 25px;border-radius:12px;display:grid;grid-template-columns:200px 1fr 200px;align-items:center;margin-bottom:20px}
+header .logo-img{max-height:60px;width:auto;display:block;margin:auto;background:#fff;padding:6px 10px;border-radius:8px}
+header h1{font-size:22px;text-align:center;margin:0}
+.container{max-width:1400px;margin:auto}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}
+.card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1);text-align:center;cursor:pointer;transition:.2s;border:3px solid transparent}
+.card:hover{transform:scale(1.02)}
+.card.ativo{border-color:#192C53;background:#eef2fa}
+.card h2{color:#192C53;font-size:28px}
+.card p{color:#555;margin-top:6px}
+.form-box,.table-box{background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1);margin-bottom:20px}
+.form-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:end}
+.form-grid label{font-size:12px;color:#444;display:block;margin-left:6px}
+input,select,button{padding:10px;border:1px solid #ccc;border-radius:8px;margin:5px;width:calc(100% - 10px);font-size:14px}
+button{background:#192C53;color:#fff;border:none;cursor:pointer;transition:.3s}
+button:hover{opacity:.9}
+.actions button{width:auto;padding:6px 12px;margin:2px;font-size:13px;display:inline-flex;align-items:center;gap:4px}
+.btn-edit{background:#2a7ab0}
+.btn-del{background:#c0392b}
+.btn-coletar{background:#27ae60}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;border-bottom:1px solid #ddd;text-align:center;font-size:14px;vertical-align:middle}
+th{background:#192C53;color:#fff}
+.atrasado{background:#ffebee; border-left: 5px solid #ef5350;}
+.coletado{background:#d8f5d0}
+.search-bar{display:flex;gap:10px;margin-bottom:10px}
+.logo-transp{height:25px;width:auto;object-fit:contain;vertical-align:middle;margin:0}
+footer{text-align:center;padding:15px;color:#666;font-size:13px}
+
+/* Estilos do Box Flutuante de Edição (Modal) */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+.modal-box {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.modal-box h3 { color: #192C53; margin-bottom: 15px; }
+.modal-box label { font-size: 12px; color: #444; display: block; margin-top: 10px; margin-left: 5px;}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <img class="logo-img" src="https://logodownload.org/wp-content/uploads/2026/05/fut-fanatics-logo.png" alt="FutFanatics" onerror="this.style.display='none'">
+  <h1>Controle Operacional Full</h1>
+  <div></div>
+</header>
+
+<div class="cards">
+  <div class="card ativo" data-filtro="todos" onclick="setFiltro('todos')"><h2 id="cTotal">0</h2><p>Total</p></div>
+  <div class="card" data-filtro="pendente" onclick="setFiltro('pendente')"><h2 id="cPend">0</h2><p>Pendentes</p></div>
+  <div class="card" data-filtro="coletado" onclick="setFiltro('coletado')"><h2 id="cCol">0</h2><p>Coletados</p></div>
+  <div class="card" data-filtro="atraso" onclick="setFiltro('atraso')"><h2 id="cAtr">0</h2><p>Em Atraso</p></div>
+</div>
+
+<!-- Form de Novo Cadastro -->
+<div class="form-box">
+  <h3 style="color:#192C53;margin-bottom:10px;">Novo Cadastro</h3>
+  <div class="form-grid">
+    <div><label>Número Envio Full</label><input id="fEnvio" placeholder="Nº do envio"></div>
+    <div><label>Nota Fiscal</label><input id="fNF" placeholder="NF"></div>
+    <div><label>Transportadora</label>
+      <select id="fTransp">
+        <option value="">Selecione</option>
+        <option value="Mercado Livre">Mercado Livre</option>
+        <option value="Shopee">Shopee</option>
+      </select>
+    </div>
+    <div><label>Data Coleta Full</label><input type="date" id="fColeta"></div>
+    <div><label>Status</label>
+      <select id="fStatus">
+        <option value="Pendente">Pendente</option>
+        <option value="Coletado">Coletado</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:10px;">
+    <button style="width: auto; padding: 10px 25px;" onclick="cadastrarNovo()">Cadastrar</button>
+  </div>
+</div>
+
+<div class="table-box">
+  <div class="search-bar">
+    <input id="busca" placeholder="Pesquisar por envio, NF, transportadora..." oninput="render()">
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Envio</th><th>NF</th><th>Transportadora</th>
+        <th>Coleta Full</th><th>Embarque FutFanatics</th><th>Status</th><th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<footer>© 2026 Desenvolvido por Danilo Ramires — Todos os direitos reservados.</footer>
+</div>
+
+<!-- BOX FLUTUANTE DE EDIÇÃO (MODAL) -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <h3>✏️ Alterar Registro</h3>
+    <hr style="border: 0; border-top: 1px solid #ddd; margin-bottom: 10px;">
+    
+    <label>Número Envio Full</label>
+    <input id="modalEnvio" placeholder="Nº do envio">
+    
+    <label>Nota Fiscal</label>
+    <input id="modalNF" placeholder="NF">
+    
+    <label>Transportadora</label>
+    <select id="modalTransp">
+      <option value="Mercado Livre">Mercado Livre</option>
+      <option value="Shopee">Shopee</option>
+    </select>
+    
+    <label>Data Coleta Full</label>
+    <input type="date" id="modalColeta">
+    
+    <label>Status</label>
+    <select id="modalStatus">
+      <option value="Pendente">Pendente</option>
+      <option value="Coletado">Coletado</option>
+    </select>
+    
+    <div style="margin-top:20px; display:flex; gap:10px; justify-content: flex-end;">
+      <button onclick="fecharModal()" style="background:#777; width:auto; padding:10px 20px;">Cancelar</button>
+      <button onclick="salvarEdicaoModal()" style="background:#27ae60; width:auto; padding:10px 20px;">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// CONFIGURAÇÃO DA API DO GOOGLE SHEETS
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyL_6d6exN2BZBMgkjSyp1G1NHCSo2f3P3A9HqcsCXlQA9uYyodjsHZElejW48Wm_dPZw/exec";
+
+const STORAGE_KEY = 'controle_full_registros';
+let registros = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let editId = null;
+let filtroAtivo = 'todos';
+
+const LOGOS = {
+  'Mercado Livre': 'https://logodownload.org/wp-content/uploads/2016/08/mercado-livre-logo-8.png',
+  'Shopee': 'https://logodownload.org/wp-content/uploads/2021/03/shopee-logo.png'
+};
+
+function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(registros)); }
+
+// Função que dispara os dados para a sua Planilha Google em background
+function sincronizarComGoogleSheets(dados) {
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors', 
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados)
+  })
+  .then(() => console.log("Dados enviados com sucesso para o Google Sheets!"))
+  .catch(err => console.error("Erro na sincronização com o Sheets: ", err));
+}
+
+function setFiltro(f){
+  filtroAtivo = f;
+  document.querySelectorAll('.card').forEach(c=>{
+    c.classList.toggle('ativo', c.dataset.filtro===f);
+  });
+  render();
+}
+
+function limparForm(){
+  ['fEnvio','fNF','fTransp','fColeta','fStatus'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el.tagName==='SELECT') el.selectedIndex = 0;
+    else el.value='';
+  });
+}
+
+function hojeISO(){
+  const d = new Date();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+function cadastrarNovo(){
+  const envio  = document.getElementById('fEnvio').value.trim();
+  const nf     = document.getElementById('fNF').value.trim();
+  const transp = document.getElementById('fTransp').value;
+  const coleta = document.getElementById('fColeta').value;
+  const status = document.getElementById('fStatus').value;
+
+  if(!envio || !nf || !transp){
+    alert('Preencha pelo menos Envio, NF e Transportadora.');
+    return;
+  }
+
+  const duplicado = registros.findIndex(r => r.envio.toLowerCase() === envio.toLowerCase() || r.nf.toLowerCase() === nf.toLowerCase());
+  if(duplicado !== -1){
+    const d = registros[duplicado];
+    alert(`Cadastro não realizado. O número de envio ou NF já está cadastrado. N° envio: ${d.envio} NF: ${d.nf}`);
+    return;
+  }
+
+  const reg = { id: Date.now(), envio, nf, transportadora: transp, coleta, status, embarque: '' };
+  if(status==='Coletado') reg.embarque = hojeISO();
+  
+  registros.push(reg);
+  persist();
+  sincronizarComGoogleSheets(reg); // Integração Sheets
+  limparForm();
+  render();
+}
+
+function editar(idx){
+  const r = registros[idx];
+  editId = idx;
+  
+  document.getElementById('modalEnvio').value  = r.envio || '';
+  document.getElementById('modalNF').value     = r.nf || '';
+  document.getElementById('modalTransp').value = r.transportadora || '';
+  document.getElementById('modalColeta').value = r.coleta || '';
+  document.getElementById('modalStatus').value = r.status || 'Pendente';
+  
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function fecharModal(){
+  editId = null;
+  document.getElementById('editModal').style.display = 'none';
+}
+
+function salvarEdicaoModal(){
+  const envio  = document.getElementById('modalEnvio').value.trim();
+  const nf     = document.getElementById('modalNF').value.trim();
+  const transp = document.getElementById('modalTransp').value;
+  const coleta = document.getElementById('modalColeta').value;
+  const status = document.getElementById('modalStatus').value;
+
+  if(!envio || !nf || !transp){
+    alert('Preencha pelo menos Envio, NF e Transportadora.');
+    return;
+  }
+
+  const duplicado = registros.findIndex((r,i)=>{
+    if(i === editId) return false;
+    return r.envio.toLowerCase() === envio.toLowerCase() || r.nf.toLowerCase() === nf.toLowerCase();
+  });
+  if(duplicado !== -1){
+    const d = registros[duplicado];
+    alert(`Cadastro não realizado. O número de envio ou NF já está cadastrado. N° envio: ${d.envio} NF: ${d.nf}`);
+    return;
+  }
+
+  const antigo = registros[editId];
+  const reg = { ...antigo, envio, nf, transportadora: transp, coleta, status };
+  
+  if(status==='Coletado' && !reg.embarque) reg.embarque = hojeISO();
+  if(status==='Pendente') reg.embarque = '';
+  
+  registros[editId] = reg;
+  persist();
+  sincronizarComGoogleSheets(reg); // Integração Sheets (Envia o ID existente, disparando a edição lá)
+  fecharModal();
+  render();
+}
+
+function marcarColetado(idx){
+  const r = registros[idx];
+  r.status = 'Coletado';
+  if(!r.embarque) r.embarque = hojeISO();
+  persist();
+  sincronizarComGoogleSheets(r); // Integração Sheets
+  render();
+}
+
+function excluir(idx){
+  if(!confirm('Excluir este registro?')) return;
+  // Nota: A exclusão local foi mantida. Caso precise deletar fisicamente da planilha via código, me avise!
+  registros.splice(idx,1);
+  persist();
+  render();
+}
+
+function formataData(d){
+  if(!d) return '-';
+  const [y,m,dd] = d.split('-');
+  return `${dd}/${m}/${y}`;
+}
+
+function diasAteColeta(d){
+  if(!d) return 999;
+  const dt = new Date(d+'T00:00:00');
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  return Math.floor((dt - hoje)/(1000*60*60*24));
+}
+
+function renderTransp(nome){
+  const url = LOGOS[nome];
+  if(url) {
+    return `<div style="display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;">
+              <img class="logo-transp" src="${url}" alt="${nome}" title="${nome}">
+            </div>`;
+  }
+  return nome || '-';
+}
+
+function render(){
+  const termo = document.getElementById('busca').value.toLowerCase();
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  let total=0, pend=0, col=0, atr=0;
+
+  registros.forEach((r,idx)=>{
+    total++;
+    
+    const atrasado = r.status==='Pendente' && r.coleta && diasAteColeta(r.coleta) <= 4;
+    
+    if(r.status==='Coletado') col++; else pend++;
+    if(atrasado) atr++;
+
+    if(filtroAtivo==='pendente' && r.status!=='Pendente') return;
+    if(filtroAtivo==='coletado' && r.status!=='Coletado') return;
+    if(filtroAtivo==='atraso' && !atrasado) return;
+
+    const blob = `${r.envio} ${r.nf} ${r.transportadora} ${r.status}`.toLowerCase();
+    if(termo && !blob.includes(termo)) return;
+
+    const tr = document.createElement('tr');
+    if(r.status==='Coletado') tr.className='coletado';
+    else if(atrasado) tr.className='atrasado';
+
+    const btnColetar = r.status==='Pendente'
+      ? `<button class="btn-coletar" onclick="marcarColetado(${idx})">✅ Coletado</button>` : '';
+
+    tr.innerHTML = `
+      <td>${r.envio||'-'}</td>
+      <td>${r.nf||'-'}</td>
+      <td>${renderTransp(r.transportadora)}</td>
+      <td>${formataData(r.coleta)}</td>
+      <td>${formataData(r.embarque)}</td>
+      <td>${r.status||'-'}</td>
+      <td class="actions">
+        ${btnColetar}
+        <button class="btn-edit" onclick="editar(${idx})">✏️ Editar</button>
+        <button class="btn-del" onclick="excluir(${idx})">🗑 Excluir</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('cTotal').textContent = total;
+  document.getElementById('cPend').textContent  = pend;
+  document.getElementById('cCol').textContent   = col;
+  document.getElementById('cAtr').textContent   = atr;
+}
+
+render();
+</script>
+</body>
+</html>
