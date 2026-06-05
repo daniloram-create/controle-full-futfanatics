@@ -334,10 +334,17 @@ function renderTransp(nome){
   return url ? `<img class="logo-transp" src="${url}" alt="${nome}">` : (nome || '-');
 }
 
+// CONVERTE FORMATO DD/MM/AAAA EM TIMESTAMP PARA COMPARAÇÃO ORDENADA
+function obterTimestampData(dataBR, padraoParaVazio = Infinity) {
+  if (!dataBR || !dataBR.includes('/')) return padraoParaVazio;
+  const partes = dataBR.split('/');
+  return new Date(`${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`).getTime();
+}
+
 function obterRegistrosFiltrados() {
   const termo = document.getElementById('busca').value.toLowerCase();
   
-  return registros.map((reg, originalIdx) => ({ ...reg, originalIdx })).filter(r => {
+  let filtrados = registros.map((reg, originalIdx) => ({ ...reg, originalIdx })).filter(r => {
     const atrasado = r.status==='Pendente' && r.coleta && r.coleta !== '-' && diasAteColeta(r.coleta) <= 4;
     
     if(filtroAtivo==='pendente' && r.status!=='Pendente') return false;
@@ -348,6 +355,31 @@ function obterRegistrosFiltrados() {
     if(termo && !blob.includes(termo)) return false;
     return true;
   });
+
+  // CRITÉRIO DE ORDENAÇÃO DUPLO (PENDENTES NO TOPO + REGRAS ESPECÍFICAS DE DATA)
+  filtrados.sort((a, b) => {
+    // Regra 1: Separação estrita por Status (Pendente ganha de Coletado)
+    if (a.status === 'Pendente' && b.status === 'Coletado') return -1;
+    if (a.status === 'Coletado' && b.status === 'Pendente') return 1;
+
+    // Regra 2: Se ambos forem PENDENTES -> Data de Coleta mais próxima primeiro (Ascendente)
+    if (a.status === 'Pendente' && b.status === 'Pendente') {
+      const timeA = obterTimestampData(a.coleta, Infinity); 
+      const timeB = obterTimestampData(b.coleta, Infinity);
+      return timeA - timeB; 
+    }
+
+    // Regra 3: Se ambos forem COLETADOS -> Data de Embarque mais recente primeiro (Descendente)
+    if (a.status === 'Coletado' && b.status === 'Coletado') {
+      const timeA = obterTimestampData(a.embarque, 0); 
+      const timeB = obterTimestampData(b.embarque, 0);
+      return timeB - timeA; // Invertido para trazer as mais recentes no topo
+    }
+
+    return 0;
+  });
+
+  return filtrados;
 }
 
 function paginaAnterior() { if(paginaAtual > 1) { paginaAtual--; render(); } }
