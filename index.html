@@ -184,7 +184,11 @@ function carregarDadosDoGoogleSheets() {
     .then(response => response.json())
     .then(dados => {
       if (Array.isArray(dados)) {
-        registros = dados;
+        registros = dados.map(r => {
+          // Garante consistência no carregamento primário dos dados
+          if(!r.status || r.status === '-' || r.status === '') r.status = 'Pendente';
+          return r;
+        });
         statusEl.textContent = "✅ Dados atualizados com sucesso!";
         setTimeout(() => statusEl.style.display = 'none', 2000);
       }
@@ -229,14 +233,14 @@ function cadastrarNovo(){
   const nf     = document.getElementById('fNF').value.trim();
   const transp = document.getElementById('fTransp').value;
   const coleta = document.getElementById('fColeta').value;
-  const status = document.getElementById('fStatus').value;
+  const status = document.getElementById('fStatus').value || 'Pendente';
 
   if(!envio || !nf || !transp){ alert('Preencha pelo menos Envio, NF e Transportadora.'); return; }
 
   const duplicado = registros.findIndex(r => String(r.envio).toLowerCase() === envio.toLowerCase() || String(r.nf).toLowerCase() === nf.toLowerCase());
   if(duplicado !== -1){ alert(`O número de envio ou NF já está cadastrado.`); return; }
 
-  const reg = { id: String(Date.now()), envio, nf, transportadora: transp, coleta, status, status, embarque: '' };
+  const reg = { id: String(Date.now()), envio, nf, transportadora: transp, coleta, status, embarque: '' };
   if(status==='Coletado') reg.embarque = hojeISO();
   
   registros.push(reg);
@@ -321,8 +325,9 @@ function renderTransp(nome){
 function obterRegistrosFiltrados() {
   const termo = document.getElementById('busca').value.toLowerCase();
   
-  let resultado = registros.map((reg, originalIdx) => ({ ...reg, originalIdx })).filter(r => {
+  return registros.map((reg, originalIdx) => ({ ...reg, originalIdx })).filter(r => {
     const atrasado = r.status==='Pendente' && r.coleta && r.coleta !== '-' && diasAteColeta(r.coleta) <= 4;
+    
     if(filtroAtivo==='pendente' && r.status!=='Pendente') return false;
     if(filtroAtivo==='coletado' && r.status!=='Coletado') return false;
     if(filtroAtivo==='atraso' && !atrasado) return false;
@@ -331,17 +336,6 @@ function obterRegistrosFiltrados() {
     if(termo && !blob.includes(termo)) return false;
     return true;
   });
-
-  resultado.sort((a, b) => {
-    if (a.status === 'Pendente' && b.status === 'Coletado') return -1;
-    if (a.status === 'Coletado' && b.status === 'Pendente') return 1;
-    if (a.coleta && b.coleta && a.coleta !== '-' && b.coleta !== '-') {
-      return new Date(a.coleta) - new Date(b.coleta);
-    }
-    return 0;
-  });
-
-  return resultado;
 }
 
 function paginaAnterior() { if(paginaAtual > 1) { paginaAtual--; render(); } }
@@ -353,6 +347,7 @@ function render(){
   tbody.innerHTML = '';
 
   let total=0, pend=0, col=0, atr=0;
+  
   registros.forEach(r => {
     total++;
     const atrasado = r.status==='Pendente' && r.coleta && r.coleta !== '-' && diasAteColeta(r.coleta) <= 4;
@@ -377,12 +372,12 @@ function render(){
   registrosDaPagina.forEach((r) => {
     const atrasado = r.status==='Pendente' && r.coleta && r.coleta !== '-' && diasAteColeta(r.coleta) <= 4;
     const tr = document.createElement('tr');
+    
     if(r.status==='Coletado') tr.className='coletado';
     else if(atrasado) tr.className='atrasado';
 
     const btnColetar = r.status==='Pendente' ? `<button class="btn-coletar" onclick="marcarColetado(${r.originalIdx})">✅ Coletado</button>` : '';
 
-    // Ajuste fino de exibição para impedir vazamento de strings indesejadas no Embarque
     let exibicaoEmbarque = "-";
     if(r.status === 'Coletado' && r.embarque && r.embarque.toLowerCase() !== 'pendente') {
       exibicaoEmbarque = formataData(r.embarque);
@@ -394,7 +389,7 @@ function render(){
       <td>${renderTransp(r.transportadora)}</td>
       <td>${formataData(r.coleta)}</td>
       <td>${exibicaoEmbarque}</td>
-      <td>${r.status||'-'}</td>
+      <td style="font-weight: bold; color: ${r.status==='Coletado'?'#27ae60':'#c0392b'}">${r.status}</td>
       <td class="actions">
         ${btnColetar}
         <button class="btn-edit" onclick="editar(${r.originalIdx})">✏️ Editar</button>
