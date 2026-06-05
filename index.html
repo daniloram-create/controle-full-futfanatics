@@ -186,7 +186,7 @@ function carregarDadosDoGoogleSheets() {
           if(!r.status || r.status.trim() === '-' || r.status.trim() === '') r.status = 'Pendente';
           return r;
         });
-        statusEl.textContent = "✅ Dados updated com sucesso!";
+        statusEl.textContent = "✅ Dados atualizados com sucesso!";
         setTimeout(() => statusEl.style.display = 'none', 2000);
       }
       render();
