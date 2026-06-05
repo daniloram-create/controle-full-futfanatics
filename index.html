@@ -303,8 +303,11 @@ function salvarEdicaoModal(){
   render();
 }
 
+// BOX DE CONFIRMAÇÃO ADICIONADO AQUI
 function marcarColetado(idx){
   const r = registros[idx];
+  if(!confirm(`Confirmar a coleta do envio nº ${r.envio || ''} agora?`)) return; // Se o usuário clicar em Cancelar, aborta
+  
   r.status = 'Coletado';
   r.embarque = hojeBR();
   persistLocally();
@@ -334,7 +337,6 @@ function renderTransp(nome){
   return url ? `<img class="logo-transp" src="${url}" alt="${nome}">` : (nome || '-');
 }
 
-// CONVERTE FORMATO DD/MM/AAAA EM TIMESTAMP PARA COMPARAÇÃO ORDENADA
 function obterTimestampData(dataBR, padraoParaVazio = Infinity) {
   if (!dataBR || !dataBR.includes('/')) return padraoParaVazio;
   const partes = dataBR.split('/');
@@ -356,24 +358,20 @@ function obterRegistrosFiltrados() {
     return true;
   });
 
-  // CRITÉRIO DE ORDENAÇÃO DUPLO (PENDENTES NO TOPO + REGRAS ESPECÍFICAS DE DATA)
   filtrados.sort((a, b) => {
-    // Regra 1: Separação estrita por Status (Pendente ganha de Coletado)
     if (a.status === 'Pendente' && b.status === 'Coletado') return -1;
     if (a.status === 'Coletado' && b.status === 'Pendente') return 1;
 
-    // Regra 2: Se ambos forem PENDENTES -> Data de Coleta mais próxima primeiro (Ascendente)
     if (a.status === 'Pendente' && b.status === 'Pendente') {
       const timeA = obterTimestampData(a.coleta, Infinity); 
       const timeB = obterTimestampData(b.coleta, Infinity);
       return timeA - timeB; 
     }
 
-    // Regra 3: Se ambos forem COLETADOS -> Data de Embarque mais recente primeiro (Descendente)
     if (a.status === 'Coletado' && b.status === 'Coletado') {
       const timeA = obterTimestampData(a.embarque, 0); 
       const timeB = obterTimestampData(b.embarque, 0);
-      return timeB - timeA; // Invertido para trazer as mais recentes no topo
+      return timeB - timeA; 
     }
 
     return 0;
