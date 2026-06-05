@@ -186,7 +186,7 @@ function carregarDadosDoGoogleSheets() {
           if(!r.status || r.status.trim() === '-' || r.status.trim() === '') r.status = 'Pendente';
           return r;
         });
-        statusEl.textContent = "✅ Dados atualizados com sucesso!";
+        statusEl.textContent = "✅ Dados updated com sucesso!";
         setTimeout(() => statusEl.style.display = 'none', 2000);
       }
       render();
@@ -220,13 +220,11 @@ function setFiltro(f){
 function resetarPaginaERender() { paginaAtual = 1; render(); }
 function limparForm(){ ['fEnvio','fNF','fTransp','fColeta','fStatus'].forEach(id=>{ const el = document.getElementById(id); if(el.tagName==='SELECT') el.selectedIndex = 0; else el.value=''; }); }
 
-// Retorna data de hoje formatada em DD/MM/AAAA
 function hojeBR(){
   const d = new Date();
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 
-// Converte inputs tipo HTML (AAAA-MM-DD) para padrão BR (DD/MM/AAAA)
 function converterInputParaBR(dataInput) {
   if(!dataInput) return "";
   if(dataInput.includes('/')) return dataInput;
@@ -235,7 +233,6 @@ function converterInputParaBR(dataInput) {
   return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
 
-// Converte padrão BR (DD/MM/AAAA) para formato de Input HTML (AAAA-MM-DD)
 function converterBRParaInput(dataBR) {
   if(!dataBR || !dataBR.includes('/')) return "";
   const partes = dataBR.split('/');
@@ -255,9 +252,11 @@ function cadastrarNovo(){
   if(duplicado !== -1){ alert(`O número de envio ou NF já está cadastrado.`); return; }
 
   const coletaBR = converterInputParaBR(coletaInput);
-  const reg = { id: String(Date.now()), envio, nf, transportadora: transp, coleta: coletaBR, status, embarque: '' };
+  const reg = { id: String(Date.now()), envio: envio, nf: nf, transportadora: transp, coleta: coletaBR, status: status, embarque: '' };
   
-  if(status==='Coletado') reg.embarque = hojeBR();
+  if(status === 'Coletado') {
+    reg.embarque = hojeBR();
+  }
   
   registros.push(reg);
   persistLocally();
@@ -289,12 +288,12 @@ function salvarEdicaoModal(){
 
   const antigo = registros[idx];
   const coletaBR = converterInputParaBR(coletaInput);
-  const reg = { ...antigo, envio, nf, transportadora: transp, coleta: coletaBR, status };
+  const reg = { ...antigo, envio: envio, nf: nf, transportadora: transp, coleta: coletaBR, status: status };
   
-  if(status==='Coletado') {
+  if(status === 'Coletado') {
     if(!reg.embarque || reg.embarque === '-') reg.embarque = hojeBR();
   } else {
-    reg.embarque = ''; // Se mudar para pendente, zera o embarque
+    reg.embarque = ''; 
   }
   
   registros[idx] = reg;
