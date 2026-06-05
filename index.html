@@ -36,6 +36,53 @@ th{background:#192C53;color:#fff}
 .logo-transp{height:25px;width:auto;object-fit:contain;vertical-align:middle;margin:0}
 footer{text-align:center;padding:15px;color:#666;font-size:13px}
 
+/* Estilos da Paginação Avançada */
+.paginacao-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+.paginacao-info {
+  font-size: 14px;
+  color: #555;
+}
+.paginacao-botoes {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.paginacao-botoes button {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #192C53;
+  color: white;
+}
+.paginacao-botoes button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.paginacao-numeros {
+  display: flex;
+  gap: 4px;
+}
+.btn-pagina-num {
+  background: #fff !important;
+  color: #192C53 !important;
+  border: 1px solid #192C53 !important;
+  min-width: 32px;
+  padding: 6px !important;
+  font-weight: bold;
+}
+.btn-pagina-num.ativo {
+  background: #192C53 !important;
+  color: #fff !important;
+}
+
 /* Estilos do Box Flutuante de Edição (Modal) */
 .modal-overlay {
   display: none;
@@ -73,6 +120,7 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
   <div class="card" data-filtro="atraso" onclick="setFiltro('atraso')"><h2 id="cAtr">0</h2><p>Em Atraso</p></div>
 </div>
 
+<!-- Form de Novo Cadastro -->
 <div class="form-box">
   <h3 style="color:#192C53;margin-bottom:10px;">Novo Cadastro</h3>
   <div class="form-grid">
@@ -100,7 +148,7 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
 
 <div class="table-box">
   <div class="search-bar">
-    <input id="busca" placeholder="Pesquisar por envio, NF, transportadora..." oninput="render()">
+    <input id="busca" placeholder="Pesquisar por envio, NF, transportadora..." oninput="resetarPaginaERender()">
   </div>
   <table>
     <thead>
@@ -111,11 +159,22 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
     </thead>
     <tbody id="tbody"></tbody>
   </table>
+
+  <!-- Estrutura Visual da Paginação -->
+  <div class="paginacao-container">
+    <div class="paginacao-info" id="paginacaoInfo">Exibindo 0-0 de 0 registros</div>
+    <div class="paginacao-botoes">
+      <button id="btnAnterior" onclick="paginaAnterior()">◀</button>
+      <div class="paginacao-numeros" id="paginacaoNumeros"></div>
+      <button id="btnProximo" onclick="proximaPagina()">▶</button>
+    </div>
+  </div>
 </div>
 
 <footer>© 2026 Desenvolvido por Danilo Ramires — Todos os direitos reservados.</footer>
 </div>
 
+<!-- BOX FLUTUANTE DE EDIÇÃO (MODAL) -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-box">
     <h3>✏️ Alterar Registro</h3>
@@ -157,6 +216,9 @@ let registros = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 let editId = null;
 let filtroAtivo = 'todos';
 
+let paginaAtual = 1;
+const LINHAS_POR_PAGINA = 20;
+
 const LOGOS = {
   'Mercado Livre': 'https://logodownload.org/wp-content/uploads/2016/08/mercado-livre-logo-8.png',
   'Shopee': 'https://logodownload.org/wp-content/uploads/2021/03/shopee-logo.png'
@@ -177,9 +239,15 @@ function sincronizarComGoogleSheets(dados) {
 
 function setFiltro(f){
   filtroAtivo = f;
+  paginaAtual = 1; 
   document.querySelectorAll('.card').forEach(c=>{
     c.classList.toggle('ativo', c.dataset.filtro===f);
   });
+  render();
+}
+
+function resetarPaginaERender() {
+  paginaAtual = 1; 
   render();
 }
 
@@ -224,7 +292,7 @@ function cadastrarNovo(){
   persist();
   sincronizarComGoogleSheets(reg); 
   limparForm();
-  render();
+  resetarPaginaERender();
 }
 
 function editar(idx){
@@ -293,6 +361,9 @@ function excluir(idx){
   if(!confirm('Excluir este registro?')) return;
   registros.splice(idx,1);
   persist();
+  const totalFiltrados = obterRegistrosFiltrados().length;
+  const maxPaginas = Math.ceil(totalFiltrados / LINHAS_POR_PAGINA) || 1;
+  if(paginaAtual > maxPaginas) paginaAtual = maxPaginas;
   render();
 }
 
@@ -319,34 +390,102 @@ function renderTransp(nome){
   return nome || '-';
 }
 
-function render(){
+function obterRegistrosFiltrados() {
   const termo = document.getElementById('busca').value.toLowerCase();
+  
+  // 1. Mapeia e filtra os dados com base nos inputs e cards clicados
+  let resultado = registros.map((reg, originalIdx) => ({ ...reg, originalIdx })).filter(r => {
+    const atrasado = r.status==='Pendente' && r.coleta && diasAteColeta(r.coleta) <= 4;
+    
+    if(filtroAtivo==='pendente' && r.status!=='Pendente') return false;
+    if(filtroAtivo==='coletado' && r.status!=='Coletado') return false;
+    if(filtroAtivo==='atraso' && !atrasado) return false;
+    
+    const blob = `${r.envio} ${r.nf} ${r.transportadora} ${r.status}`.toLowerCase();
+    if(termo && !blob.includes(termo)) return false;
+    
+    return true;
+  });
+
+  // 2. ORDENAÇÃO POR URGÊNCIA: Datas mais próximas da Coleta Full primeiro
+  resultado.sort((a, b) => {
+    // Regra A: Status Pendente sempre fica acima de Coletado
+    if (a.status === 'Pendente' && b.status === 'Coletado') return -1;
+    if (a.status === 'Coletado' && b.status === 'Pendente') return 1;
+
+    // Regra B: Ordenar por proximidade da data de Coleta Full (Apenas se ambos tiverem data)
+    if (a.coleta && b.coleta) {
+      return new Date(a.coleta) - new Date(b.coleta);
+    }
+    
+    // Regra C: Se um não tiver data preenchida, joga ele para o final da sua categoria
+    if (a.coleta && !b.coleta) return -1;
+    if (!a.coleta && b.coleta) return 1;
+    
+    return 0;
+  });
+
+  return resultado;
+}
+
+function paginaAnterior() {
+  if(paginaAtual > 1) {
+    paginaAtual--;
+    render();
+  }
+}
+
+function proximaPagina() {
+  const filtrados = obterRegistrosFiltrados();
+  const maxPaginas = Math.ceil(filtrados.length / LINHAS_POR_PAGINA);
+  if(paginaAtual < maxPaginas) {
+    paginaAtual++;
+    render();
+  }
+}
+
+function irParaPagina(num) {
+  paginaAtual = num;
+  render();
+}
+
+function render(){
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
   let total=0, pend=0, col=0, atr=0;
-
-  registros.forEach((r,idx)=>{
+  registros.forEach(r => {
     total++;
-    
     const atrasado = r.status==='Pendente' && r.coleta && diasAteColeta(r.coleta) <= 4;
-    
     if(r.status==='Coletado') col++; else pend++;
     if(atrasado) atr++;
+  });
 
-    if(filtroAtivo==='pendente' && r.status!=='Pendente') return;
-    if(filtroAtivo==='coletado' && r.status!=='Coletado') return;
-    if(filtroAtivo==='atraso' && !atrasado) return;
+  document.getElementById('cTotal').textContent = total;
+  document.getElementById('cPend').textContent  = pend;
+  document.getElementById('cCol').textContent   = col;
+  document.getElementById('cAtr').textContent   = atr;
 
-    const blob = `${r.envio} ${r.nf} ${r.transportadora} ${r.status}`.toLowerCase();
-    if(termo && !blob.includes(termo)) return;
+  const filtrados = obterRegistrosFiltrados();
+  const totalFiltrados = filtrados.length;
 
+  const maxPaginas = Math.ceil(totalFiltrados / LINHAS_POR_PAGINA) || 1;
+  if(paginaAtual > maxPaginas) paginaAtual = maxPaginas;
+
+  const indiceInicial = (paginaAtual - 1) * LINHAS_POR_PAGINA;
+  const indiceFinal = Math.min(indiceInicial + LINHAS_POR_PAGINA, totalFiltrados);
+
+  const registrosDaPagina = filtrados.slice(indiceInicial, indiceFinal);
+
+  registrosDaPagina.forEach((r) => {
+    const atrasado = r.status==='Pendente' && r.coleta && diasAteColeta(r.coleta) <= 4;
+    
     const tr = document.createElement('tr');
     if(r.status==='Coletado') tr.className='coletado';
     else if(atrasado) tr.className='atrasado';
 
     const btnColetar = r.status==='Pendente'
-      ? `<button class="btn-coletar" onclick="marcarColetado(${idx})">✅ Coletado</button>` : '';
+      ? `<button class="btn-coletar" onclick="marcarColetado(${r.originalIdx})">✅ Coletado</button>` : '';
 
     tr.innerHTML = `
       <td>${r.envio||'-'}</td>
@@ -357,16 +496,28 @@ function render(){
       <td>${r.status||'-'}</td>
       <td class="actions">
         ${btnColetar}
-        <button class="btn-edit" onclick="editar(${idx})">✏️ Editar</button>
-        <button class="btn-del" onclick="excluir(${idx})">🗑 Excluir</button>
+        <button class="btn-edit" onclick="editar(${r.originalIdx})">✏️ Editar</button>
+        <button class="btn-del" onclick="excluir(${r.originalIdx})">🗑 Excluir</button>
       </td>`;
     tbody.appendChild(tr);
   });
 
-  document.getElementById('cTotal').textContent = total;
-  document.getElementById('cPend').textContent  = pend;
-  document.getElementById('cCol').textContent   = col;
-  document.getElementById('cAtr').textContent   = atr;
+  const exibindoDe = totalFiltrados === 0 ? 0 : indiceInicial + 1;
+  document.getElementById('paginacaoInfo').textContent = `Exibindo ${exibindoDe}-${indiceFinal} de ${totalFiltrados} registros`;
+  
+  document.getElementById('btnAnterior').disabled = (paginaAtual === 1);
+  document.getElementById('btnProximo').disabled = (paginaAtual === maxPaginas || totalFiltrados === 0);
+
+  const containerNumeros = document.getElementById('paginacaoNumeros');
+  containerNumeros.innerHTML = '';
+  
+  for (let i = 1; i <= maxPaginas; i++) {
+    const btnNum = document.createElement('button');
+    btnNum.textContent = i;
+    btnNum.className = `btn-pagina-num ${i === paginaAtual ? 'ativo' : ''}`;
+    btnNum.onclick = () => irParaPagina(i);
+    containerNumeros.appendChild(btnNum);
+  }
 }
 
 render();
