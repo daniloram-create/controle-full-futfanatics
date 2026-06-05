@@ -78,7 +78,6 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
 
 <div id="loadingStatus" class="loading-status">🔄 Sincronizando dados com o Google Sheets...</div>
 
-<!-- Form de Cadastro -->
 <div class="form-box">
   <h3 style="color:#192C53;margin-bottom:10px;">Novo Cadastro</h3>
   <div class="form-grid">
@@ -131,7 +130,6 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
 <footer>© 2026 Desenvolvido por Danilo Ramirez — Todos os direitos reservados.</footer>
 </div>
 
-<!-- MODAL DE EDIÇÃO -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-box">
     <h3>✏️ Alterar Registro</h3>
@@ -185,8 +183,7 @@ function carregarDadosDoGoogleSheets() {
     .then(dados => {
       if (Array.isArray(dados)) {
         registros = dados.map(r => {
-          // Garante consistência no carregamento primário dos dados
-          if(!r.status || r.status === '-' || r.status === '') r.status = 'Pendente';
+          if(!r.status || r.status.trim() === '-' || r.status.trim() === '') r.status = 'Pendente';
           return r;
         });
         statusEl.textContent = "✅ Dados atualizados com sucesso!";
@@ -223,25 +220,44 @@ function setFiltro(f){
 function resetarPaginaERender() { paginaAtual = 1; render(); }
 function limparForm(){ ['fEnvio','fNF','fTransp','fColeta','fStatus'].forEach(id=>{ const el = document.getElementById(id); if(el.tagName==='SELECT') el.selectedIndex = 0; else el.value=''; }); }
 
-function hojeISO(){
+// Retorna data de hoje formatada em DD/MM/AAAA
+function hojeBR(){
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+// Converte inputs tipo HTML (AAAA-MM-DD) para padrão BR (DD/MM/AAAA)
+function converterInputParaBR(dataInput) {
+  if(!dataInput) return "";
+  if(dataInput.includes('/')) return dataInput;
+  const partes = dataInput.split('-');
+  if(partes.length < 3) return dataInput;
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+// Converte padrão BR (DD/MM/AAAA) para formato de Input HTML (AAAA-MM-DD)
+function converterBRParaInput(dataBR) {
+  if(!dataBR || !dataBR.includes('/')) return "";
+  const partes = dataBR.split('/');
+  return `${partes[2]}-${partes[1]}-${partes[0]}`;
 }
 
 function cadastrarNovo(){
-  const envio  = document.getElementById('fEnvio').value.trim();
-  const nf     = document.getElementById('fNF').value.trim();
-  const transp = document.getElementById('fTransp').value;
-  const coleta = document.getElementById('fColeta').value;
-  const status = document.getElementById('fStatus').value || 'Pendente';
+  const envio       = document.getElementById('fEnvio').value.trim();
+  const nf          = document.getElementById('fNF').value.trim();
+  const transp      = document.getElementById('fTransp').value;
+  const coletaInput = document.getElementById('fColeta').value;
+  const status      = document.getElementById('fStatus').value || 'Pendente';
 
   if(!envio || !nf || !transp){ alert('Preencha pelo menos Envio, NF e Transportadora.'); return; }
 
   const duplicado = registros.findIndex(r => String(r.envio).toLowerCase() === envio.toLowerCase() || String(r.nf).toLowerCase() === nf.toLowerCase());
   if(duplicado !== -1){ alert(`O número de envio ou NF já está cadastrado.`); return; }
 
-  const reg = { id: String(Date.now()), envio, nf, transportadora: transp, coleta, status, embarque: '' };
-  if(status==='Coletado') reg.embarque = hojeISO();
+  const coletaBR = converterInputParaBR(coletaInput);
+  const reg = { id: String(Date.now()), envio, nf, transportadora: transp, coleta: coletaBR, status, embarque: '' };
+  
+  if(status==='Coletado') reg.embarque = hojeBR();
   
   registros.push(reg);
   persistLocally();
@@ -256,7 +272,7 @@ function editar(idx){
   document.getElementById('modalEnvio').value  = r.envio || '';
   document.getElementById('modalNF').value     = r.nf || '';
   document.getElementById('modalTransp').value = r.transportadora || '';
-  document.getElementById('modalColeta').value = r.coleta || '';
+  document.getElementById('modalColeta').value = converterBRParaInput(r.coleta);
   document.getElementById('modalStatus').value = r.status || 'Pendente';
   document.getElementById('editModal').style.display = 'flex';
 }
@@ -264,18 +280,22 @@ function editar(idx){
 function fecharModal(){ document.getElementById('editModal').style.display = 'none'; }
 
 function salvarEdicaoModal(){
-  const idx = document.getElementById('modalId').value;
-  const envio  = document.getElementById('modalEnvio').value.trim();
-  const nf     = document.getElementById('modalNF').value.trim();
-  const transp = document.getElementById('modalTransp').value;
-  const coleta = document.getElementById('modalColeta').value;
-  const status = document.getElementById('modalStatus').value;
+  const idx         = document.getElementById('modalId').value;
+  const envio       = document.getElementById('modalEnvio').value.trim();
+  const nf          = document.getElementById('modalNF').value.trim();
+  const transp      = document.getElementById('modalTransp').value;
+  const coletaInput = document.getElementById('modalColeta').value;
+  const status      = document.getElementById('modalStatus').value;
 
   const antigo = registros[idx];
-  const reg = { ...antigo, envio, nf, transportadora: transp, coleta, status };
+  const coletaBR = converterInputParaBR(coletaInput);
+  const reg = { ...antigo, envio, nf, transportadora: transp, coleta: coletaBR, status };
   
-  if(status==='Coletado' && (!reg.embarque || reg.embarque === '-')) reg.embarque = hojeISO();
-  if(status==='Pendente') reg.embarque = '';
+  if(status==='Coletado') {
+    if(!reg.embarque || reg.embarque === '-') reg.embarque = hojeBR();
+  } else {
+    reg.embarque = ''; // Se mudar para pendente, zera o embarque
+  }
   
   registros[idx] = reg;
   persistLocally();
@@ -287,7 +307,7 @@ function salvarEdicaoModal(){
 function marcarColetado(idx){
   const r = registros[idx];
   r.status = 'Coletado';
-  r.embarque = hojeISO();
+  r.embarque = hojeBR();
   persistLocally();
   enviarParaGoogleSheets(r, "editar"); 
   render();
@@ -302,17 +322,10 @@ function excluir(idx){
   render();
 }
 
-function formataData(d){
-  if(!d || d === '-' || d.toLowerCase() === 'pendente') return '-';
-  if(d.includes('/')) return d; 
-  const parts = d.split('T')[0].split('-');
-  if(parts.length < 3) return d;
-  return `${parts[2]}/${parts[1]}/${parts[0]}`;
-}
-
-function diasAteColeta(d){
-  if(!d || d==='-' || d.toLowerCase() === 'pendente') return 999;
-  const dt = new Date(d.split('T')[0]+'T00:00:00');
+function diasAteColeta(dataBR){
+  if(!dataBR || !dataBR.includes('/')) return 999;
+  const partes = dataBR.split('/');
+  const dt = new Date(`${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`);
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   return Math.floor((dt - hoje)/(1000*60*60*24));
 }
@@ -379,15 +392,15 @@ function render(){
     const btnColetar = r.status==='Pendente' ? `<button class="btn-coletar" onclick="marcarColetado(${r.originalIdx})">✅ Coletado</button>` : '';
 
     let exibicaoEmbarque = "-";
-    if(r.status === 'Coletado' && r.embarque && r.embarque.toLowerCase() !== 'pendente') {
-      exibicaoEmbarque = formataData(r.embarque);
+    if(r.status === 'Coletado' && r.embarque && r.embarque.trim() !== '') {
+      exibicaoEmbarque = r.embarque;
     }
 
     tr.innerHTML = `
       <td>${r.envio||'-'}</td>
       <td>${r.nf||'-'}</td>
       <td>${renderTransp(r.transportadora)}</td>
-      <td>${formataData(r.coleta)}</td>
+      <td>${r.coleta || '-'}</td>
       <td>${exibicaoEmbarque}</td>
       <td style="font-weight: bold; color: ${r.status==='Coletado'?'#27ae60':'#c0392b'}">${r.status}</td>
       <td class="actions">
