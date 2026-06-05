@@ -73,7 +73,6 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
   <div class="card" data-filtro="atraso" onclick="setFiltro('atraso')"><h2 id="cAtr">0</h2><p>Em Atraso</p></div>
 </div>
 
-<!-- Form de Novo Cadastro -->
 <div class="form-box">
   <h3 style="color:#192C53;margin-bottom:10px;">Novo Cadastro</h3>
   <div class="form-grid">
@@ -117,7 +116,6 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
 <footer>© 2026 Desenvolvido por Danilo Ramires — Todos os direitos reservados.</footer>
 </div>
 
-<!-- BOX FLUTUANTE DE EDIÇÃO (MODAL) -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-box">
     <h3>✏️ Alterar Registro</h3>
@@ -152,7 +150,6 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
 </div>
 
 <script>
-// CONFIGURAÇÃO DA API DO GOOGLE SHEETS
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2S-qAHmNlMl4HvrZW1-Qp6QNsro8hz3o7VzK-lwkGPI8tyuRkToJTYqbchwbVuSnh/exec";
 
 const STORAGE_KEY = 'controle_full_registros';
@@ -167,7 +164,6 @@ const LOGOS = {
 
 function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(registros)); }
 
-// Função que dispara os dados para a sua Planilha Google em background
 function sincronizarComGoogleSheets(dados) {
   fetch(SCRIPT_URL, {
     method: 'POST',
@@ -175,8 +171,8 @@ function sincronizarComGoogleSheets(dados) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dados)
   })
-  .then(() => console.log("Dados enviados com sucesso para o Google Sheets!"))
-  .catch(err => console.error("Erro na sincronização com o Sheets: ", err));
+  .then(() => console.log("Dados sincronizados."))
+  .catch(err => console.error("Erro na sincronização: ", err));
 }
 
 function setFiltro(f){
@@ -226,7 +222,7 @@ function cadastrarNovo(){
   
   registros.push(reg);
   persist();
-  sincronizarComGoogleSheets(reg); // Integração Sheets
+  sincronizarComGoogleSheets(reg); 
   limparForm();
   render();
 }
@@ -279,7 +275,7 @@ function salvarEdicaoModal(){
   
   registros[editId] = reg;
   persist();
-  sincronizarComGoogleSheets(reg); // Integração Sheets (Envia o ID existente, disparando a edição lá)
+  sincronizarComGoogleSheets(reg); 
   fecharModal();
   render();
 }
@@ -289,13 +285,12 @@ function marcarColetado(idx){
   r.status = 'Coletado';
   if(!r.embarque) r.embarque = hojeISO();
   persist();
-  sincronizarComGoogleSheets(r); // Integração Sheets
+  sincronizarComGoogleSheets(r); 
   render();
 }
 
 function excluir(idx){
   if(!confirm('Excluir este registro?')) return;
-  // Nota: A exclusão local foi mantida. Caso precise deletar fisicamente da planilha via código, me avise!
   registros.splice(idx,1);
   persist();
   render();
