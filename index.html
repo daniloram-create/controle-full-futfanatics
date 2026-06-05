@@ -36,7 +36,18 @@ th{background:#192C53;color:#fff}
 .logo-transp{height:25px;width:auto;object-fit:contain;vertical-align:middle;margin:0}
 footer{text-align:center;padding:15px;color:#666;font-size:13px}
 
-/* Estilos da Paginação Avançada */
+/* Status de Carregamento */
+.loading-status {
+  text-align: center;
+  padding: 15px;
+  background: #eef2fa;
+  color: #192C53;
+  font-weight: bold;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+/* Estilos da Paginação */
 .paginacao-container {
   display: flex;
   justify-content: space-between;
@@ -45,62 +56,17 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
   padding-top: 10px;
   border-top: 1px solid #eee;
 }
-.paginacao-info {
-  font-size: 14px;
-  color: #555;
-}
-.paginacao-botoes {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.paginacao-botoes button {
-  width: auto;
-  padding: 6px 12px;
-  font-size: 13px;
-  background: #192C53;
-  color: white;
-}
-.paginacao-botoes button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-.paginacao-numeros {
-  display: flex;
-  gap: 4px;
-}
-.btn-pagina-num {
-  background: #fff !important;
-  color: #192C53 !important;
-  border: 1px solid #192C53 !important;
-  min-width: 32px;
-  padding: 6px !important;
-  font-weight: bold;
-}
-.btn-pagina-num.ativo {
-  background: #192C53 !important;
-  color: #fff !important;
-}
+.paginacao-info { font-size: 14px; color: #555; }
+.paginacao-botoes { display: flex; align-items: center; gap: 5px; }
+.paginacao-botoes button { width: auto; padding: 6px 12px; font-size: 13px; background: #192C53; color: white; }
+.paginacao-botoes button:disabled { background: #ccc; cursor: not-allowed; opacity: 0.7; }
+.paginacao-numeros { display: flex; gap: 4px; }
+.btn-pagina-num { background: #fff !important; color: #192C53 !important; border: 1px solid #192C53 !important; min-width: 32px; padding: 6px !important; font-weight: bold; }
+.btn-pagina-num.ativo { background: #192C53 !important; color: #fff !important; }
 
-/* Estilos do Box Flutuante de Edição (Modal) */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
-}
-.modal-box {
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  width: 500px;
-  max-width: 90%;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
+/* Modal */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+.modal-box { background: #fff; padding: 25px; border-radius: 12px; width: 500px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 .modal-box h3 { color: #192C53; margin-bottom: 15px; }
 .modal-box label { font-size: 12px; color: #444; display: block; margin-top: 10px; margin-left: 5px;}
 </style>
@@ -119,6 +85,9 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
   <div class="card" data-filtro="coletado" onclick="setFiltro('coletado')"><h2 id="cCol">0</h2><p>Coletados</p></div>
   <div class="card" data-filtro="atraso" onclick="setFiltro('atraso')"><h2 id="cAtr">0</h2><p>Em Atraso</p></div>
 </div>
+
+<!-- Indicador se está buscando dados -->
+<div id="loadingStatus" class="loading-status">🔄 Sincronizando dados com o Google Sheets...</div>
 
 <!-- Form de Novo Cadastro -->
 <div class="form-box">
@@ -160,7 +129,6 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
     <tbody id="tbody"></tbody>
   </table>
 
-  <!-- Estrutura Visual da Paginação -->
   <div class="paginacao-container">
     <div class="paginacao-info" id="paginacaoInfo">Exibindo 0-0 de 0 registros</div>
     <div class="paginacao-botoes">
@@ -174,27 +142,24 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
 <footer>© 2026 Desenvolvido por Danilo Ramires — Todos os direitos reservados.</footer>
 </div>
 
-<!-- BOX FLUTUANTE DE EDIÇÃO (MODAL) -->
+<!-- MODAL DE EDIÇÃO -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-box">
     <h3>✏️ Alterar Registro</h3>
     <hr style="border: 0; border-top: 1px solid #ddd; margin-bottom: 10px;">
     
+    <input type="hidden" id="modalId">
     <label>Número Envio Full</label>
     <input id="modalEnvio" placeholder="Nº do envio">
-    
     <label>Nota Fiscal</label>
     <input id="modalNF" placeholder="NF">
-    
     <label>Transportadora</label>
     <select id="modalTransp">
       <option value="Mercado Livre">Mercado Livre</option>
       <option value="Shopee">Shopee</option>
     </select>
-    
     <label>Data Coleta Full</label>
     <input type="date" id="modalColeta">
-    
     <label>Status</label>
     <select id="modalStatus">
       <option value="Pendente">Pendente</option>
@@ -211,11 +176,8 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2S-qAHmNlMl4HvrZW1-Qp6QNsro8hz3o7VzK-lwkGPI8tyuRkToJTYqbchwbVuSnh/exec";
 
-const STORAGE_KEY = 'controle_full_registros';
-let registros = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-let editId = null;
+let registros = [];
 let filtroAtivo = 'todos';
-
 let paginaAtual = 1;
 const LINHAS_POR_PAGINA = 20;
 
@@ -224,16 +186,46 @@ const LOGOS = {
   'Shopee': 'https://logodownload.org/wp-content/uploads/2021/03/shopee-logo.png'
 };
 
-function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(registros)); }
+// --- FUNÇÃO PRINCIPAL: BUSCA OS DADOS DO GOOGLE SHEETS AO CARREGAR ---
+function carregarDadosDoGoogleSheets() {
+  const statusEl = document.getElementById('loadingStatus');
+  statusEl.style.display = 'block';
+  statusEl.textContent = "🔄 Buscando dados em tempo real da Planilha...";
 
-function sincronizarComGoogleSheets(dados) {
+  fetch(SCRIPT_URL)
+    .then(response => response.json())
+    .then(dados => {
+      if (Array.isArray(dados)) {
+        registros = dados;
+        statusEl.textContent = "✅ Dados atualizados com sucesso!";
+        setTimeout(() => statusEl.style.display = 'none', 3000);
+      } else {
+        statusEl.textContent = "⚠️ Nenhuns dados encontrados ou formato inválido.";
+      }
+      render();
+    })
+    .catch(err => {
+      console.error("Erro ao puxar dados: ", err);
+      statusEl.textContent = "❌ Erro ao conectar com o Google Sheets. Exibindo dados locais anteriores.";
+      registros = JSON.parse(localStorage.getItem('controle_full_registros') || '[]');
+      render();
+    });
+}
+
+function persistLocally(){ 
+  localStorage.setItem('controle_full_registros', JSON.stringify(registros)); 
+}
+
+function enviarParaGoogleSheets(dados, acao = "salvar") {
+  const dadosComAcao = { ...dados, acao: acao };
+  
   fetch(SCRIPT_URL, {
     method: 'POST',
     mode: 'no-cors', 
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(dados)
+    body: JSON.stringify(dadosComAcao)
   })
-  .then(() => console.log("Dados sincronizados."))
+  .then(() => console.log(`Envio enviado com sucesso via: ${acao}`))
   .catch(err => console.error("Erro na sincronização: ", err));
 }
 
@@ -246,24 +238,12 @@ function setFiltro(f){
   render();
 }
 
-function resetarPaginaERender() {
-  paginaAtual = 1; 
-  render();
-}
-
-function limparForm(){
-  ['fEnvio','fNF','fTransp','fColeta','fStatus'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el.tagName==='SELECT') el.selectedIndex = 0;
-    else el.value='';
-  });
-}
+function resetarPaginaERender() { paginaAtual = 1; render(); }
+function limparForm(){ ['fEnvio','fNF','fTransp','fColeta','fStatus'].forEach(id=>{ const el = document.getElementById(id); if(el.tagName==='SELECT') el.selectedIndex = 0; else el.value=''; }); }
 
 function hojeISO(){
   const d = new Date();
-  const mm = String(d.getMonth()+1).padStart(2,'0');
-  const dd = String(d.getDate()).padStart(2,'0');
-  return `${d.getFullYear()}-${mm}-${dd}`;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function cadastrarNovo(){
@@ -273,32 +253,27 @@ function cadastrarNovo(){
   const coleta = document.getElementById('fColeta').value;
   const status = document.getElementById('fStatus').value;
 
-  if(!envio || !nf || !transp){
-    alert('Preencha pelo menos Envio, NF e Transportadora.');
-    return;
-  }
+  if(!envio || !nf || !transp){ alert('Preencha pelo menos Envio, NF e Transportadora.'); return; }
 
-  const duplicado = registros.findIndex(r => r.envio.toLowerCase() === envio.toLowerCase() || r.nf.toLowerCase() === nf.toLowerCase());
+  const duplicado = registros.findIndex(r => String(r.envio).toLowerCase() === envio.toLowerCase() || String(r.nf).toLowerCase() === nf.toLowerCase());
   if(duplicado !== -1){
-    const d = registros[duplicado];
-    alert(`Cadastro não realizado. O número de envio ou NF já está cadastrado. N° envio: ${d.envio} NF: ${d.nf}`);
+    alert(`O número de envio ou NF já está cadastrado.`);
     return;
   }
 
-  const reg = { id: Date.now(), envio, nf, transportadora: transp, coleta, status, embarque: '' };
+  const reg = { id: String(Date.now()), envio, nf, transportadora: transp, coleta, status, embarque: '' };
   if(status==='Coletado') reg.embarque = hojeISO();
   
   registros.push(reg);
-  persist();
-  sincronizarComGoogleSheets(reg); 
+  persistLocally();
+  enviarParaGoogleSheets(reg, "salvar"); 
   limparForm();
   resetarPaginaERender();
 }
 
 function editar(idx){
   const r = registros[idx];
-  editId = idx;
-  
+  document.getElementById('modalId').value      = idx;
   document.getElementById('modalEnvio').value  = r.envio || '';
   document.getElementById('modalNF').value     = r.nf || '';
   document.getElementById('modalTransp').value = r.transportadora || '';
@@ -308,42 +283,25 @@ function editar(idx){
   document.getElementById('editModal').style.display = 'flex';
 }
 
-function fecharModal(){
-  editId = null;
-  document.getElementById('editModal').style.display = 'none';
-}
+function fecharModal(){ document.getElementById('editModal').style.display = 'none'; }
 
 function salvarEdicaoModal(){
+  const idx = document.getElementById('modalId').value;
   const envio  = document.getElementById('modalEnvio').value.trim();
   const nf     = document.getElementById('modalNF').value.trim();
   const transp = document.getElementById('modalTransp').value;
   const coleta = document.getElementById('modalColeta').value;
   const status = document.getElementById('modalStatus').value;
 
-  if(!envio || !nf || !transp){
-    alert('Preencha pelo menos Envio, NF e Transportadora.');
-    return;
-  }
-
-  const duplicado = registros.findIndex((r,i)=>{
-    if(i === editId) return false;
-    return r.envio.toLowerCase() === envio.toLowerCase() || r.nf.toLowerCase() === nf.toLowerCase();
-  });
-  if(duplicado !== -1){
-    const d = registros[duplicado];
-    alert(`Cadastro não realizado. O número de envio ou NF já está cadastrado. N° envio: ${d.envio} NF: ${d.nf}`);
-    return;
-  }
-
-  const antigo = registros[editId];
+  const antigo = registros[idx];
   const reg = { ...antigo, envio, nf, transportadora: transp, coleta, status };
   
   if(status==='Coletado' && !reg.embarque) reg.embarque = hojeISO();
   if(status==='Pendente') reg.embarque = '';
   
-  registros[editId] = reg;
-  persist();
-  sincronizarComGoogleSheets(reg); 
+  registros[idx] = reg;
+  persistLocally();
+  enviarParaGoogleSheets(reg, "editar"); 
   fecharModal();
   render();
 }
@@ -352,102 +310,71 @@ function marcarColetado(idx){
   const r = registros[idx];
   r.status = 'Coletado';
   if(!r.embarque) r.embarque = hojeISO();
-  persist();
-  sincronizarComGoogleSheets(r); 
+  persistLocally();
+  enviarParaGoogleSheets(r, "editar"); 
   render();
 }
 
 function excluir(idx){
-  if(!confirm('Excluir este registro?')) return;
+  if(!confirm('Excluir este registro permanentemente?')) return;
+  const r = registros[idx];
+  enviarParaGoogleSheets(r, "deletar");
   registros.splice(idx,1);
-  persist();
-  const totalFiltrados = obterRegistrosFiltrados().length;
-  const maxPaginas = Math.ceil(totalFiltrados / LINHAS_POR_PAGINA) || 1;
-  if(paginaAtual > maxPaginas) paginaAtual = maxPaginas;
+  persistLocally();
   render();
 }
 
 function formataData(d){
-  if(!d) return '-';
-  const [y,m,dd] = d.split('-');
-  return `${dd}/${m}/${y}`;
+  if(!d || d === '-') return '-';
+  if(d.includes('/')) return d; // Já está formatada
+  const parts = d.split('T')[0].split('-');
+  if(parts.length < 3) return d;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
 function diasAteColeta(d){
-  if(!d) return 999;
-  const dt = new Date(d+'T00:00:00');
+  if(!d || d==='-') return 999;
+  const dt = new Date(d.split('T')[0]+'T00:00:00');
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   return Math.floor((dt - hoje)/(1000*60*60*24));
 }
 
 function renderTransp(nome){
   const url = LOGOS[nome];
-  if(url) {
-    return `<div style="display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;">
-              <img class="logo-transp" src="${url}" alt="${nome}" title="${nome}">
-            </div>`;
-  }
-  return nome || '-';
+  return url ? `<img class="logo-transp" src="${url}" alt="${nome}">` : (nome || '-');
 }
 
 function obterRegistrosFiltrados() {
   const termo = document.getElementById('busca').value.toLowerCase();
   
-  // 1. Mapeia e filtra os dados com base nos inputs e cards clicados
   let resultado = registros.map((reg, originalIdx) => ({ ...reg, originalIdx })).filter(r => {
-    const atrasado = r.status==='Pendente' && r.coleta && diasAteColeta(r.coleta) <= 4;
-    
+    const atrasado = r.status==='Pendente' && r.coleta && r.coleta !== '-' && diasAteColeta(r.coleta) <= 4;
     if(filtroAtivo==='pendente' && r.status!=='Pendente') return false;
     if(filtroAtivo==='coletado' && r.status!=='Coletado') return false;
     if(filtroAtivo==='atraso' && !atrasado) return false;
     
     const blob = `${r.envio} ${r.nf} ${r.transportadora} ${r.status}`.toLowerCase();
     if(termo && !blob.includes(termo)) return false;
-    
     return true;
   });
 
-  // 2. ORDENAÇÃO POR URGÊNCIA: Datas mais próximas da Coleta Full primeiro
   resultado.sort((a, b) => {
-    // Regra A: Status Pendente sempre fica acima de Coletado
     if (a.status === 'Pendente' && b.status === 'Coletado') return -1;
     if (a.status === 'Coletado' && b.status === 'Pendente') return 1;
-
-    // Regra B: Ordenar por proximidade da data de Coleta Full (Apenas se ambos tiverem data)
-    if (a.coleta && b.coleta) {
+    if (a.coleta && b.coleta && a.coleta !== '-' && b.coleta !== '-') {
       return new Date(a.coleta) - new Date(b.coleta);
     }
-    
-    // Regra C: Se um não tiver data preenchida, joga ele para o final da sua categoria
-    if (a.coleta && !b.coleta) return -1;
-    if (!a.coleta && b.coleta) return 1;
-    
+    if (a.coleta && a.coleta !== '-') return -1;
+    if (b.coleta && b.coleta !== '-') return 1;
     return 0;
   });
 
   return resultado;
 }
 
-function paginaAnterior() {
-  if(paginaAtual > 1) {
-    paginaAtual--;
-    render();
-  }
-}
-
-function proximaPagina() {
-  const filtrados = obterRegistrosFiltrados();
-  const maxPaginas = Math.ceil(filtrados.length / LINHAS_POR_PAGINA);
-  if(paginaAtual < maxPaginas) {
-    paginaAtual++;
-    render();
-  }
-}
-
-function irParaPagina(num) {
-  paginaAtual = num;
-  render();
-}
+function paginaAnterior() { if(paginaAtual > 1) { paginaAtual--; render(); } }
+function proximaPagina() { const filtrados = obterRegistrosFiltrados(); const maxPaginas = Math.ceil(filtrados.length / LINHAS_POR_PAGINA); if(paginaAtual < maxPaginas) { paginaAtual++; render(); } }
+function irParaPagina(num) { paginaAtual = num; render(); }
 
 function render(){
   const tbody = document.getElementById('tbody');
@@ -456,7 +383,7 @@ function render(){
   let total=0, pend=0, col=0, atr=0;
   registros.forEach(r => {
     total++;
-    const atrasado = r.status==='Pendente' && r.coleta && diasAteColeta(r.coleta) <= 4;
+    const atrasado = r.status==='Pendente' && r.coleta && r.coleta !== '-' && diasAteColeta(r.coleta) <= 4;
     if(r.status==='Coletado') col++; else pend++;
     if(atrasado) atr++;
   });
@@ -468,24 +395,20 @@ function render(){
 
   const filtrados = obterRegistrosFiltrados();
   const totalFiltrados = filtrados.length;
-
   const maxPaginas = Math.ceil(totalFiltrados / LINHAS_POR_PAGINA) || 1;
   if(paginaAtual > maxPaginas) paginaAtual = maxPaginas;
 
   const indiceInicial = (paginaAtual - 1) * LINHAS_POR_PAGINA;
   const indiceFinal = Math.min(indiceInicial + LINHAS_POR_PAGINA, totalFiltrados);
-
   const registrosDaPagina = filtrados.slice(indiceInicial, indiceFinal);
 
   registrosDaPagina.forEach((r) => {
-    const atrasado = r.status==='Pendente' && r.coleta && diasAteColeta(r.coleta) <= 4;
-    
+    const atrasado = r.status==='Pendente' && r.coleta && r.coleta !== '-' && diasAteColeta(r.coleta) <= 4;
     const tr = document.createElement('tr');
     if(r.status==='Coletado') tr.className='coletado';
     else if(atrasado) tr.className='atrasado';
 
-    const btnColetar = r.status==='Pendente'
-      ? `<button class="btn-coletar" onclick="marcarColetado(${r.originalIdx})">✅ Coletado</button>` : '';
+    const btnColetar = r.status==='Pendente' ? `<button class="btn-coletar" onclick="marcarColetado(${r.originalIdx})">✅ Coletado</button>` : '';
 
     tr.innerHTML = `
       <td>${r.envio||'-'}</td>
@@ -504,13 +427,11 @@ function render(){
 
   const exibindoDe = totalFiltrados === 0 ? 0 : indiceInicial + 1;
   document.getElementById('paginacaoInfo').textContent = `Exibindo ${exibindoDe}-${indiceFinal} de ${totalFiltrados} registros`;
-  
   document.getElementById('btnAnterior').disabled = (paginaAtual === 1);
   document.getElementById('btnProximo').disabled = (paginaAtual === maxPaginas || totalFiltrados === 0);
 
   const containerNumeros = document.getElementById('paginacaoNumeros');
   containerNumeros.innerHTML = '';
-  
   for (let i = 1; i <= maxPaginas; i++) {
     const btnNum = document.createElement('button');
     btnNum.textContent = i;
@@ -520,7 +441,8 @@ function render(){
   }
 }
 
-render();
+// INICIALIZAÇÃO AUTOMÁTICA AO ENTRAR
+carregarDadosDoGoogleSheets();
 </script>
 </body>
 </html>
