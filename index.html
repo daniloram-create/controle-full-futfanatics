@@ -236,7 +236,7 @@ function cadastrarNovo(){
   const duplicado = registros.findIndex(r => String(r.envio).toLowerCase() === envio.toLowerCase() || String(r.nf).toLowerCase() === nf.toLowerCase());
   if(duplicado !== -1){ alert(`O número de envio ou NF já está cadastrado.`); return; }
 
-  const reg = { id: String(Date.now()), envio, nf, transportadora: transp, coleta, status, embarque: '' };
+  const reg = { id: String(Date.now()), envio, nf, transportadora: transp, coleta, status, status, embarque: '' };
   if(status==='Coletado') reg.embarque = hojeISO();
   
   registros.push(reg);
@@ -270,7 +270,7 @@ function salvarEdicaoModal(){
   const antigo = registros[idx];
   const reg = { ...antigo, envio, nf, transportadora: transp, coleta, status };
   
-  if(status==='Coletado' && !reg.embarque) reg.embarque = hojeISO();
+  if(status==='Coletado' && (!reg.embarque || reg.embarque === '-')) reg.embarque = hojeISO();
   if(status==='Pendente') reg.embarque = '';
   
   registros[idx] = reg;
@@ -283,7 +283,7 @@ function salvarEdicaoModal(){
 function marcarColetado(idx){
   const r = registros[idx];
   r.status = 'Coletado';
-  if(!r.embarque) r.embarque = hojeISO();
+  r.embarque = hojeISO();
   persistLocally();
   enviarParaGoogleSheets(r, "editar"); 
   render();
@@ -299,7 +299,7 @@ function excluir(idx){
 }
 
 function formataData(d){
-  if(!d || d === '-') return '-';
+  if(!d || d === '-' || d.toLowerCase() === 'pendente') return '-';
   if(d.includes('/')) return d; 
   const parts = d.split('T')[0].split('-');
   if(parts.length < 3) return d;
@@ -307,7 +307,7 @@ function formataData(d){
 }
 
 function diasAteColeta(d){
-  if(!d || d==='-') return 999;
+  if(!d || d==='-' || d.toLowerCase() === 'pendente') return 999;
   const dt = new Date(d.split('T')[0]+'T00:00:00');
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   return Math.floor((dt - hoje)/(1000*60*60*24));
@@ -332,15 +332,12 @@ function obterRegistrosFiltrados() {
     return true;
   });
 
-  // ORDENAÇÃO POR URGÊNCIA (Pendente primeiro + Data mais próxima na Coleta Full)
   resultado.sort((a, b) => {
     if (a.status === 'Pendente' && b.status === 'Coletado') return -1;
     if (a.status === 'Coletado' && b.status === 'Pendente') return 1;
     if (a.coleta && b.coleta && a.coleta !== '-' && b.coleta !== '-') {
       return new Date(a.coleta) - new Date(b.coleta);
     }
-    if (a.coleta && a.coleta !== '-') return -1;
-    if (b.coleta && b.coleta !== '-') return 1;
     return 0;
   });
 
@@ -385,12 +382,18 @@ function render(){
 
     const btnColetar = r.status==='Pendente' ? `<button class="btn-coletar" onclick="marcarColetado(${r.originalIdx})">✅ Coletado</button>` : '';
 
+    // Ajuste fino de exibição para impedir vazamento de strings indesejadas no Embarque
+    let exibicaoEmbarque = "-";
+    if(r.status === 'Coletado' && r.embarque && r.embarque.toLowerCase() !== 'pendente') {
+      exibicaoEmbarque = formataData(r.embarque);
+    }
+
     tr.innerHTML = `
       <td>${r.envio||'-'}</td>
       <td>${r.nf||'-'}</td>
       <td>${renderTransp(r.transportadora)}</td>
       <td>${formataData(r.coleta)}</td>
-      <td>${formataData(r.embarque)}</td>
+      <td>${exibicaoEmbarque}</td>
       <td>${r.status||'-'}</td>
       <td class="actions">
         ${btnColetar}
