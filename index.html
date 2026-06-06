@@ -6,10 +6,10 @@
 <title>Controle Full - FutFanatics</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{background:#f4f6fb;padding:40px}
+body{background:#f4f6fb;padding:20px}
 header{background:#192C53;color:#fff;padding:15px 25px;border-radius:12px;display:grid;grid-template-columns:200px 1fr 200px;align-items:center;margin-bottom:20px}
 header .logo-img{max-height:60px;width:auto;display:block;margin:auto;background:#fff;padding:6px 10px;border-radius:8px}
-header h1{font-size:22px;text-align:center;margin:0}
+header h1{font-size:40px;text-align:center;margin:0;font-weight:bold;letter-spacing:-0.5px} /* Aumentado para 40px e ajustado peso */
 .container{max-width:1400px;margin:auto}
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}
 .card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1);text-align:center;cursor:pointer;transition:.2s;border:3px solid transparent}
@@ -143,7 +143,7 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
   </div>
 </div>
 
-<footer>© 2026 Desenvolvido por Danilo Ramirez — Todos os direitos reservados.</footer>
+<footer>© 2026 Desenvolvido por Danilo Ramires — Todos os direitos reservados.</footer>
 </div>
 
 <!-- MODAL DE EDIÇÃO -->
@@ -177,7 +177,7 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
   </div>
 </div>
 
-<!-- NOVO MODAL LINDO DE CONFIRMAÇÃO -->
+<!-- MODAL LINDO DE CONFIRMAÇÃO -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-box confirm-box">
     <div class="confirm-icon">🚀</div>
@@ -197,7 +197,7 @@ let registros = [];
 let filtroAtivo = 'todos';
 let paginaAtual = 1;
 const LINHAS_POR_PAGINA = 20;
-let callbackConfirmacao = null; // Guarda a ação pendente do modal
+let callbackConfirmacao = null;
 
 const LOGOS = {
   'Mercado Livre': 'https://logodownload.org/wp-content/uploads/2016/08/mercado-livre-logo-8.png',
@@ -334,9 +334,8 @@ function salvarEdicaoModal(){
   render();
 }
 
-// LÓGICA DO MODAL CUSTOMIZADO DE CONFIRMAÇÃO
 function abrirConfirmModal(mensagem, acao) {
-  document.getElementById('confirmModalMsg').innerHTML = mensagem;
+  document.getElementById('confirmModalMsg').innerHTML = message = mensagem;
   document.getElementById('confirmModal').style.display = 'flex';
   callbackConfirmacao = acao;
 }
@@ -355,7 +354,6 @@ function marcarColetado(idx){
   const r = registros[idx];
   const mensagemText = `Confirmar que o envio do Full <b>Nº ${r.envio || '-'}</b> (NF: ${r.nf || '-'}) foi coletado hoje?`;
   
-  // Chama o modal customizado ao invés do confirm() antigo
   abrirConfirmModal(mensagemText, function() {
     r.status = 'Coletado';
     r.embarque = hojeBR();
@@ -377,7 +375,6 @@ function excluir(idx){
     persistLocally();
     render();
     
-    // Restaura padrões do modal para a coleta
     document.getElementById('confirmModal').querySelector('.confirm-icon').textContent = '🚀';
     document.getElementById('confirmModal').querySelector('.btn-confirm-success').style.background = '#27ae60';
     document.getElementById('confirmModal').querySelector('.btn-confirm-success').textContent = 'Sim, Coletado!';
