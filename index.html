@@ -23,7 +23,7 @@ header{background:#192C53;color:#fff;padding:15px 25px;border-radius:12px;displa
 header .logo-img{max-height:60px;width:auto;background:#fff;padding:6px 10px;border-radius:8px;flex-shrink:0}
 header h1{font-size:clamp(22px, 4vw, 36px);text-align:center;margin:0;font-weight:bold;letter-spacing:-0.5px;flex:1;min-width:280px}
 
-/* DROPDOWN ELEGANTE DE USUÁRIO */
+/* DROPDOWN DE USUÁRIO */
 .dropdown-user {position: relative;display: inline-block;}
 .dropdown-btn {background: rgba(255, 255, 255, 0.1);color: #fff;border: 1px solid rgba(255, 255, 255, 0.25);padding: 8px 16px;font-weight: bold;font-size: 14px;border-radius: 8px;cursor: pointer;display: flex;align-items: center;gap: 8px;transition: 0.2s;}
 .dropdown-btn:hover {background: rgba(255, 255, 255, 0.2);border-color: rgba(255, 255, 255, 0.4);}
@@ -45,7 +45,7 @@ header h1{font-size:clamp(22px, 4vw, 36px);text-align:center;margin:0;font-weigh
 
 .legendas-container {background:#fff;padding:12px;border-radius:10px;margin-top:25px;margin-bottom:15px;box-shadow:0 2px 6px rgba(0,0,0,.08);display:flex;flex-wrap:wrap;gap:15px;justify-content:center;align-items:center}
 .legendas-title {font-size:12px;font-weight:bold;color:#192C53;text-transform:uppercase}
-.legenda-item {display:flex;align-items:center;gap:6px;font-size:12px;font-weight:bold;color:#444}
+.legenda-item {display:flex;align-items:center;gap:6px;font-size:12px;font-weight:bold;color:#444;cursor:help}
 .legendas-cor {width:16px;height:16px;border-radius:4px;display:inline-block;flex-shrink:0}
 
 .form-box,.table-box, .filtros-extras-box {background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1);margin-bottom:20px}
@@ -66,7 +66,7 @@ table{width:100%;border-collapse:collapse}
 th,td{padding:12px 10px;border-bottom:1px solid #eee;text-align:center;font-size:13px;vertical-align:middle}
 th{background:#192C53;color:#fff;font-weight:600}
 
-.badge-status {display:inline-block;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:bold;text-transform:uppercase}
+.badge-status {display:inline-block;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:bold;text-transform:uppercase;cursor:help}
 .badge-default {background:#e0e0e0;color:#424242}
 .badge-reabast {background:#bbdefb;color:#0d47a1}
 .badge-canc {background:#ffcdd2;color:#b71c1c}
@@ -140,7 +140,7 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
   </div>
 </div>
 
-<div class="modal-overlay" id="loginErrorModal" style="z-index: 10002;">
+<div class="modal-overlay" id="loginErrorModal" style="z-index: 1002;">
   <div class="modal-box" style="width: 360px; text-align: center; border-top: 5px solid #c0392b;">
     <h3 style="color:#c0392b; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px;">❌ Acesso Negado</h3>
     <p style="margin: 18px 0; color: #444; font-size: 14px; line-height: 1.5;">Usuário ou senha incorretos.<br>Verifique suas credenciais e tente novamente.</p>
@@ -159,7 +159,7 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
   
   <div class="dropdown-user">
     <button class="dropdown-btn" onclick="toggleDropdown(event)">
-      👤 <span id="userInfoHeader">Usuário: -</span> ▾
+      🙂 <span id="userInfoHeader">Usuário: -</span> ▾
     </button>
     <div class="dropdown-content" id="userDropdownMenu">
       <button id="gearAdmin" onclick="abrirAdminModal()" style="display:none;">🔑 Painel do Administrador</button>
@@ -169,16 +169,16 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
 </header>
 
 <div class="cards">
-  <div class="card ativo" data-filtro="todos" onclick="setFiltro('todos')"><h2 id="cTotal">0</h2><p>Total</p></div>
-  <div class="card" data-filtro="-" onclick="setFiltro('-')"><h2 id="cPad">0</h2><p>Novos Envios</p></div>
-  <div class="card" data-filtro="Aguardando Reabastecimento" onclick="setFiltro('Aguardando Reabastecimento')"><h2 id="cRea">0</h2><p>Aguardando Reabastecimento</p></div>
-  <div class="card" data-filtro="Cancelado" onclick="setFiltro('Cancelado')"><h2 id="cCanc">0</h2><p>Cancelado</p></div>
-  <div class="card" data-filtro="Apta para separação" onclick="setFiltro('Apta para separação')"><h2 id="cApt">0</h2><p>Apta para separação</p></div>
-  <div class="card" data-filtro="Em separação" onclick="setFiltro('Em separação')"><h2 id="cSep">0</h2><p>Em separação</p></div>
-  <div class="card" data-filtro="Em conferência" onclick="setFiltro('Em conferência')"><h2 id="cConf">0</h2><p>Em conferência</p></div>
-  <div class="card" data-filtro="Em Expedição" onclick="setFiltro('Em Expedição')"><h2 id="cExp">0</h2><p>Em Expedição</p></div>
-  <div class="card" data-filtro="Coletado" onclick="setFiltro('Coletado')"><h2 id="cCol">0</h2><p>Coletado</p></div>
-  <div class="card" data-filtro="atraso" onclick="setFiltro('atraso')" style="background:#fff5f5"><h2 id="cAtr" style="color:#c0392b">0</h2><p style="color:#c0392b">Atrasados</p></div>
+  <div class="card ativo" data-filtro="todos" onclick="setFiltro('todos')" title="Filtrar por todos os envios da lista"><h2 id="cTotal">0</h2><p>Total</p></div>
+  <div class="card" data-filtro="-" onclick="setFiltro('-')" title="Novos cadastros pendentes de triagem inicial"><h2 id="cPad">0</h2><p>Novos Envios</p></div>
+  <div class="card" data-filtro="Aguardando Reabastecimento" onclick="setFiltro('Aguardando Reabastecimento')" title="Envios retidos por indisponibilidade momentânea de estoque"><h2 id="cRea">0</h2><p>Aguardando Reabastecimento</p></div>
+  <div class="card" data-filtro="Cancelado" onclick="setFiltro('Cancelado')" title="Envios cancelados (Esteira e fluxo operacional interrompidos)"><h2 id="cCanc">0</h2><p>Cancelado</p></div>
+  <div class="card" data-filtro="Apta para separação" onclick="setFiltro('Apta para separação')" title="Envios validados prontos para início de picking/separação"><h2 id="cApt">0</h2><p>Apta para separação</p></div>
+  <div class="card" data-filtro="Em separação" onclick="setFiltro('Em separação')" title="Envios em processo de coleta física dos itens no armazém"><h2 id="cSep">0</h2><p>Em separação</p></div>
+  <div class="card" data-filtro="Em conferência" onclick="setFiltro('Em conferência')" title="Pedidos em processo de checagem, validation de itens e NF"><h2 id="cConf">0</h2><p>Em conferência</p></div>
+  <div class="card" data-filtro="Em Expedição" onclick="setFiltro('Em Expedição')" title="Pedidos devidamente embalados e faturados na área de expedição"><h2 id="cExp">0</h2><p>Em Expedição</p></div>
+  <div class="card" data-filtro="Coletado" onclick="setFiltro('Coletado')" title="Envios despachados e integrados à transportadora parceira"><h2 id="cCol">0</h2><p>Coletado</p></div>
+  <div class="card" data-filtro="atraso" onclick="setFiltro('atraso')" style="background:#fff5f5" title="Crítico: Envios em aberto com menos de 4 dias restantes para data limite da coleta"><h2 id="cAtr" style="color:#c0392b">0</h2><p style="color:#c0392b">Atrasados</p></div>
 </div>
 
 <div id="loadingStatus" class="loading-status">🔄 Conectando ao Banco de Dados...</div>
@@ -253,20 +253,20 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
 
 <div class="legendas-container">
   <div class="legendas-title">Legenda de Cores do status:</div>
-  <div class="legenda-item"><div class="legendas-cor" style="background:#616161"></div> Novo (-)</div>
-  <div class="legenda-item"><div class="legendas-cor" style="background:#0d47a1"></div> Ag. Reabastecimento</div>
-  <div class="legenda-item"><div class="legendas-cor" style="background:#b71c1c"></div> Cancelado</div>
-  <div class="legenda-item"><div class="legendas-cor" style="background:#4a148c"></div> Apta p/ Separação</div>
-  <div class="legenda-item"><div class="legendas-cor" style="background:#e65100"></div> Em Separação</div>
-  <div class="legenda-item"><div class="legendas-cor" style="background:#f57f17"></div> Em Conferência</div>
-  <div class="legenda-item"><div class="legendas-cor" style="background:#33691e"></div> Em Expedição</div>
-  <div class="legenda-item"><div class="legendas-cor" style="background:#004d40"></div> Coletado</div>
+  <div class="legenda-item" title="Cadastro básico efetuado, aguardando início da esteira"><div class="legendas-cor" style="background:#616161"></div> Novo (-)</div>
+  <div class="legenda-item" title="Processamento retido por falta de estoque para faturamento"><div class="legendas-cor" style="background:#0d47a1"></div> Ag. Reabastecimento</div>
+  <div class="legenda-item" title="Envio cancelado - Operação cancelada definitivamente"><div class="legendas-cor" style="background:#b71c1c"></div> Cancelado</div>
+  <div class="legenda-item" title="Validação de estoque realizada, pronto para picking"><div class="legendas-cor" style="background:#4a148c"></div> Apta p/ Separação</div>
+  <div class="legenda-item" title="Operadores coletando itens nas prateleiras físicas"><div class="legendas-cor" style="background:#e65100"></div> Em Separação</div>
+  <div class="legenda-item" title="Bipagem, conferência fina de volumes e amarração de NF"><div class="legendas-cor" style="background:#f57f17"></div> Em Conferência</div>
+  <div class="legenda-item" title="Pedidos paletizados e aguardando veículo de coleta na doca"><div class="legendas-cor" style="background:#33691e"></div> Em Expedição</div>
+  <div class="legenda-item" title="Despacho concluído - Coleta realizada e encerrada com sucesso"><div class="legendas-cor" style="background:#004d40"></div> Coletado</div>
 </div>
 
 <footer>© 2026 Desenvolvido por Danilo Ramires — Direitos Reservados à Operação FutFanatics.</footer>
 </div>
 
-<div class="modal-overlay" id="adminModal" style="z-index: 10005;">
+<div class="modal-overlay" id="adminModal" style="z-index: 1005;">
   <div class="modal-box" style="width: 650px; border-top: 5px solid #192C53;">
     <h3 style="color:#192C53; margin-bottom:10px; display:flex; align-items:center; gap:6px;">🔑 Painel do Administrador — Cadastrar Novo Operador</h3>
     <hr style="border: 0; border-top: 1px dashed #ddd; margin-bottom: 15px;">
@@ -311,13 +311,23 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
   </div>
 </div>
 
-<div class="modal-overlay" id="confirmModal" style="z-index: 10010;">
+<div class="modal-overlay" id="confirmModal" style="z-index: 1010;">
   <div class="modal-box" style="width: 420px; text-align: center; border-top: 5px solid #192C53;">
     <h3 id="confirmTitle" style="color:#192C53; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px;">⚠️ Confirmar Ação</h3>
     <p id="confirmMessage" style="margin: 18px 0; color: #444; font-size: 14px; line-height: 1.5;"></p>
     <div style="display:flex; gap:10px; justify-content: center; margin-top: 15px;">
       <button onclick="responderConfirmacao(false)" style="background:#777; width:auto; padding:8px 18px; margin:0; font-weight:bold;">Cancelar</button>
       <button onclick="responderConfirmacao(true)" style="background:#192C53; width:auto; padding:8px 18px; margin:0; font-weight:bold;">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="alertaModal" style="z-index: 1020;">
+  <div class="modal-box" style="width: 400px; text-align: center; border-top: 5px solid #c0392b;">
+    <h3 style="color:#c0392b; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px;">⚠️ Aviso do Sistema</h3>
+    <p id="alertaMensagem" style="margin: 18px 0; color: #444; font-size: 14px; line-height: 1.5; font-weight: 500;"></p>
+    <div style="display:flex; justify-content: center; margin-top: 15px;">
+      <button onclick="fecharAlertaModal()" style="background:#c0392b; width:auto; padding:8px 24px; margin:0; font-weight:bold;">Compreendido</button>
     </div>
   </div>
 </div>
@@ -372,7 +382,6 @@ footer{text-align:center;padding:15px;color:#666;font-size:13px}
 </div>
 
 <script>
-// INSIRA ABAIXO A URL GERADA NA IMPLANTAÇÃO DO SEU GOOGLE APPS SCRIPT
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz6N6gPeKQ0qXHxFZgPZKRs1O4U4zuJ-hI8AyGAuhxEnA4CkG8Bl3BQI7y2eNN85vgo/exec"; 
 
 let USUARIOS_PERMITIDOS = {
@@ -529,7 +538,6 @@ function responderConfirmacao(aceito) {
 function efetuarLogin() {
   const u = document.getElementById('loginUser').value.trim().toLowerCase();
   const s = document.getElementById('loginPass').value.trim();
-  
   if (USUARIOS_PERMITIDOS[u] && String(USUARIOS_PERMITIDOS[u]) === s) {
     sessionStorage.setItem('usuarioLogado', u.toUpperCase());
     document.getElementById('loginOverlay').style.display = 'none';
@@ -678,7 +686,7 @@ function carregarDadosDoGoogleSheets() {
 }
 
 function enviarParaGoogleSheets(dados, acao = "salvar") {
-  if (!SCRIPT_URL || SCRIPT_URL.startsWith("https://script.google.com/macros/s/AKfycbz6N6gPeKQ0qXHxFZgPZKRs1O4U4zuJ-hI8AyGAuhxEnA4CkG8Bl3BQI7y2eNN85vgo/exec")) return;
+  if (!SCRIPT_URL || SCRIPT_URL.startsWith("SUA_NOVA_SCRIPT")) return;
   try {
     fetch(SCRIPT_URL, {
       method: 'POST',
@@ -737,6 +745,15 @@ function formatarDataEHora(valor) {
   return (d.getHours() === 0 && d.getMinutes() === 0 && d.getSeconds() === 0) ? `${dia}/${mes}/${ano}` : `${dia}/${mes}/${ano} ${hora}:${min}`;
 }
 
+function mostrarAlerta(mensagem) {
+  document.getElementById('alertaMensagem').innerHTML = message = mensagem;
+  document.getElementById('alertaModal').style.display = 'flex';
+}
+
+function fecharAlertaModal() {
+  document.getElementById('alertaModal').style.display = 'none';
+}
+
 function cadastrarNovo(){
   const envio      = document.getElementById('fEnvio').value.trim();
   const nf         = document.getElementById('fNF').value.trim();
@@ -744,33 +761,36 @@ function cadastrarNovo(){
   const destino    = document.getElementById('fDestino').value;
   const colInput   = document.getElementById('fColeta').value;
   
-  if(!envio || !nf || !transp){ 
-    showToast('Preencha Envio, NF e Transportadora.', 'danger'); 
-    return; 
+  if(!envio || !nf || !transp || !colInput){ 
+    showToast('Atenção: É obrigatório preencher Envio, NF, Transportadora e Data da Coleta.', 'danger'); 
+    return;
   }
 
-  // === TRAVA DE DUPLICIDADE ===
-  // Verifica se já existe algum registro com o mesmo número de envio
-  const envioDuplicado = registros.some(r => String(r.envio).toLowerCase() === envio.toLowerCase());
-  if(envioDuplicado) {
-    showToast(`ERRO: O envio nº ${envio} já está cadastrado no sistema!`, 'danger');
-    return; // Interrompe a função e não salva
+  const duplicado = registros.some(r => String(r.envio).trim() === String(envio).trim());
+  if (duplicado) {
+    mostrarAlerta(`Prezado operador, informamos que o envio Nº ${envio} já existe cadastrado na base de dados do sistema.`);
+    return;
   }
-  // ==============================
 
-  const reg = { 
-    id: String(Date.now()), envio: envio, nf: nf, transportadora: transp, 
-    coleta: converterInputParaBR(colInput), embarque: '', destino: destino,
-    status: '-', usuario: getUsuarioAtual(), ultima_movimentacao: agoraBR() 
-  };
-  registros.unshift(reg); 
-  enviarParaGoogleSheets(reg, "salvar"); 
-  
-  document.getElementById('fEnvio').value = '';
-  document.getElementById('fNF').value = '';
-  document.getElementById('fColeta').value = '';
-  resetarPaginaERender();
-  showToast("Novo lote adicionado com status '-' !");
+  perguntarConfirmacao(
+    "📦 Confirmar Novo Cadastro",
+    `Deseja realmente cadastrar o envio <b>${envio}</b> para a transportadora <b>${transp}</b>?`,
+    () => {
+      const reg = { 
+        id: String(Date.now()), envio: envio, nf: nf, transportadora: transp, 
+        coleta: converterInputParaBR(colInput), embarque: '', destino: destino,
+        status: '-', usuario: getUsuarioAtual(), ultima_movimentacao: agoraBR() 
+      };
+      registros.unshift(reg); 
+      enviarParaGoogleSheets(reg, "salvar"); 
+      
+      document.getElementById('fEnvio').value = '';
+      document.getElementById('fNF').value = '';
+      document.getElementById('fColeta').value = '';
+      resetarPaginaERender();
+      showToast("Novo envio adicionado com sucesso!");
+    }
+  );
 }
 
 function editar(idx){
@@ -813,6 +833,7 @@ function salvarEdicaoModal(){
   );
 }
 
+/* CORRIGIDO: Nome alterado de 'avanzarEsteira' para 'avancarEsteira' para alinhar com o HTML */
 function avancarEsteira(idx, proximoStatus) {
   const r = registros[idx];
   perguntarConfirmacao(
@@ -872,7 +893,7 @@ function obterRegistrosFiltrados() {
     
     // Filtro por Data (Utiliza a Data da Coleta Full)
     if (dInicio || dFim) {
-      const dataRegIso = converterBRParaInput(r.coleta); // Converte DD/MM/YYYY para YYYY-MM-DD
+      const dataRegIso = converterBRParaInput(r.coleta); 
       if (dInicio && dataRegIso < dInicio) return false;
       if (dFim && dataRegIso > dFim) return false;
     }
@@ -882,9 +903,6 @@ function obterRegistrosFiltrados() {
   });
 }
 
-/* =========================================================
-   FUNÇÕES DE EXPORTAÇÃO
-   ========================================================= */
 function exportarExcel() {
   if (typeof XLSX === 'undefined') { showToast("Biblioteca Excel não carregada.", "danger"); return; }
   const filtrados = obterRegistrosFiltrados();
@@ -928,7 +946,6 @@ function render(){
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   let tot=0, pad=0, rea=0, can=0, apt=0, sep=0, con=0, exp=0, col=0, atr=0;
-  
   registros.forEach(r => {
     tot++;
     const d = diasAteColeta(r.coleta);
@@ -942,7 +959,6 @@ function render(){
     else if(r.status === 'Em Expedição') exp++;
     else if(r.status === 'Coletado') col++;
   });
-  
   document.getElementById('cTotal').textContent = tot;
   document.getElementById('cPad').textContent   = pad;
   document.getElementById('cRea').textContent   = rea;
@@ -958,11 +974,9 @@ function render(){
   const totalFiltrados = filtrados.length;
   const maxPaginas = Math.ceil(totalFiltrados / LINHAS_POR_PAGINA) || 1;
   if(paginaAtual > maxPaginas) paginaAtual = maxPaginas;
-  
   const indiceInicial = (paginaAtual - 1) * LINHAS_POR_PAGINA;
   const indiceFinal = Math.min(indiceInicial + LINHAS_POR_PAGINA, totalFiltrados);
   const daPagina = filtrados.slice(indiceInicial, indiceFinal);
-  
   daPagina.forEach((r) => {
     const tr = document.createElement('tr');
     let classeStatus = 'status-padrao';
@@ -988,8 +1002,10 @@ function render(){
         <button class="btn-mudar-status" style="background:#0d47a1" onclick="avancarEsteira(${r.originalIdx}, 'Aguardando Reabastecimento')">⏳ Ag. Reabastecimento</button>
         <button class="btn-mudar-status" style="background:#b71c1c" onclick="avancarEsteira(${r.originalIdx}, 'Cancelado')">❌ Cancelado</button>
       `;
-    } else if(r.status === 'Aguardando Reabastecimento' || r.status === 'Cancelado') {
+    } else if(r.status === 'Aguardando Reabastecimento') {
       bAcao = `<button class="btn-mudar-status" style="background:#4a148c" onclick="avancarEsteira(${r.originalIdx}, 'Apta para separação')">✔️ Apta para separação</button>`;
+    } else if(r.status === 'Cancelado') {
+      bAcao = ''; 
     } else if(r.status === 'Apta para separação') {
       bAcao = `<button class="btn-mudar-status" style="background:#e65100" onclick="avancarEsteira(${r.originalIdx}, 'Em separação')">📦 Em separação</button>`;
     } else if(r.status === 'Em separação') {
@@ -1001,13 +1017,14 @@ function render(){
     }
 
     let badgeStyle = 'badge-default';
-    if(r.status === 'Aguardando Reabastecimento') badgeStyle = 'badge-reabast';
-    if(r.status === 'Cancelado') badgeStyle = 'badge-canc';
-    if(r.status === 'Apta para separação') badgeStyle = 'badge-apta';
-    if(r.status === 'Em separação') badgeStyle = 'badge-separacao';
-    if(r.status === 'Em conferência') badgeStyle = 'badge-conferencia';
-    if(r.status === 'Em Expedição') badgeStyle = 'badge-expedicao';
-    if(r.status === 'Coletado') badgeStyle = 'badge-coletado';
+    let statusDesc = 'Novo cadastro na fila operacional';
+    if(r.status === 'Aguardando Reabastecimento') { badgeStyle = 'badge-reabast'; statusDesc = 'Aguardando reposição de itens no estoque físico'; }
+    if(r.status === 'Cancelado') { badgeStyle = 'badge-canc'; statusDesc = 'Envio cancelado - Fluxo finalizado'; }
+    if(r.status === 'Apta para separação') { badgeStyle = 'badge-apta'; statusDesc = 'Lote liberado e pronto para separação física'; }
+    if(r.status === 'Em separação') { badgeStyle = 'badge-separacao'; statusDesc = 'Operadores coletando produtos no armazém'; }
+    if(r.status === 'Em conferência') { badgeStyle = 'badge-conferencia'; statusDesc = 'Processo de bipagem e checagem fina de volumes'; }
+    if(r.status === 'Em Expedição') { badgeStyle = 'badge-expedicao'; statusDesc = 'Volumes selados e prontos na doca de coleta'; }
+    if(r.status === 'Coletado') { badgeStyle = 'badge-coletado'; statusDesc = 'Volume coletado e transportado — Processo finalizado'; }
     
     tr.innerHTML = `
       <td><b>${r.envio||'-'}</b></td>
@@ -1016,7 +1033,7 @@ function render(){
       <td><span style="font-size:11px; font-weight:bold">${r.destino||'-'}</span></td>
       <td>${r.coleta || '-'}</td>
       <td><b>${r.embarque || '-'}</b></td>
-      <td><span class="badge-status ${badgeStyle}">${r.status}</span></td>
+      <td><span class="badge-status ${badgeStyle}" title="${statusDesc}">${r.status}</span></td>
       <td><i style="color:#666">${r.ultima_movimentacao || '-'}</i></td>
       <td><b>${r.usuario || '-'}</b></td>
       <td class="actions">
